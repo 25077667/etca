@@ -1,13 +1,13 @@
-from typing import AnyStr, FrozenSet
+from typing import AnyStr, MutableSet
 
 
 class FileNode:
     @staticmethod
-    def __make_detail_types() -> FrozenSet[str]:
-        return frozenset()
+    def __make_detail_types() -> MutableSet[str]:
+        return set()
 
     def __init__(
-        self, path: AnyStr = "", detail_types: FrozenSet[str] = __make_detail_types()
+        self, path: AnyStr = "", detail_types: MutableSet[str] = __make_detail_types()
     ):
         self.path = path
         self.detail_types = detail_types

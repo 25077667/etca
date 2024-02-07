@@ -9,10 +9,11 @@ class FileTypeIdentifier:
         """Register a new file type check instance."""
         self.checks.append(check_instance)
 
-    def identify(self, path: str) -> frozenset:
+    def identify(self, path: str) -> set:
         matches = set()
         for check_instance in self.checks:
             result = check_instance.check(path)
             if result:
-                matches.add(result)
-        return frozenset(matches)
+                # result is a set of file types
+                matches.update(result)
+        return matches

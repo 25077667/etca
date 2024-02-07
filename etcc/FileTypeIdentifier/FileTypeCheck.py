@@ -7,7 +7,7 @@ class FileTypeCheck:
     def __init__(self):
         pass
 
-    def check(self, path: str) -> str:
+    def check(self, path: str) -> set:
         """Method to be implemented by subclasses for checking file types."""
         raise NotImplementedError("Subclasses must implement this method")
 
