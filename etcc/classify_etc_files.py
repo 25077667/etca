@@ -2,6 +2,9 @@
 
 import os
 import json
+from typing import Dict, AnyStr
+from FileTypeIdentifier import FileTypeIdentifier, ScriptLikeCheck, CertLikeCheck
+from FileNode import FileNode
 
 
 def get_base_directory():
@@ -130,12 +133,12 @@ def get_categories():
     }
 
 
-def initialize_classification(categories: dict) -> dict:
+def initialize_classification(categories: Dict) -> Dict:
     """Initialize a classification dictionary based on the provided categories."""
-    return {category: set() for category in categories} | {"Others": set()}
+    return {category: [] for category in categories} | {"Others": []}
 
 
-def classify_path(path: str, categories: dict) -> str:
+def classify_path(path: AnyStr, categories: Dict) -> AnyStr:
     """Classify a given path into one of the predefined categories."""
     for category, patterns in categories.items():
         for pattern in patterns:
@@ -144,22 +147,41 @@ def classify_path(path: str, categories: dict) -> str:
     return "Others"
 
 
-def walk_directory_and_classify(base_dir: str, categories: dict) -> dict:
+def is_regular_file(path: AnyStr) -> bool:
+    """Check if the path is a regular file."""
+    return os.path.isfile(path)
+
+
+def get_file_type_identifier() -> FileTypeIdentifier:
+    """Return a file type identifier with registered checks."""
+    file_identifier = FileTypeIdentifier.FileTypeIdentifier()
+    file_identifier.register_check(ScriptLikeCheck.ScriptLikeCheck())
+    file_identifier.register_check(CertLikeCheck.CertLikeCheck())
+    return file_identifier
+
+
+def walk_directory_and_classify(base_dir: AnyStr, categories: dict) -> dict:
     """Walk through the directory and classify files according to predefined categories."""
     classification = initialize_classification(categories)
+    file_identifier = get_file_type_identifier()
     for root, _, files in os.walk(base_dir, followlinks=True):
         for name in files:
             source_path = os.path.join(root, name)
             full_path = os.path.realpath(source_path)
-            if not full_path.startswith(base_dir):
+
+            if not is_regular_file(full_path):
                 continue
+
+            internal_types = file_identifier.identify(full_path)
+
             category = classify_path(full_path, categories)
-            classification[category].add(full_path)
+            file_node = FileNode(full_path, internal_types)
+            classification[category].append(file_node.to_dict())
     return classification
 
 
 def save_classification_to_json(
-    classification: dict, filename: str = "class.json"
+    classification: dict, filename: AnyStr = "class.json"
 ) -> None:
     """Save the classification result to a JSON file."""
     with open(filename, "w", encoding="utf-8") as outfile:
